@@ -6,7 +6,7 @@
 
 import React from 'react';
 import PropTypes from 'prop-types';
-import {Button, Checkbox, Col, FormGroup, Grid, HelpBlock, Navbar, Radio, Row} from 'react-bootstrap';
+import {Button, Checkbox, Col, FormGroup, Grid, HelpBlock, Navbar, Radio, Row, ControlLabel,FormControl} from 'react-bootstrap';
 
 import {ipcRenderer, remote} from 'electron';
 import {debounce} from 'underscore';
@@ -283,6 +283,17 @@ export default class SettingsPage extends React.Component {
     setImmediate(this.startSaveConfig, CONFIG_TYPE_SERVERS);
   }
 
+  handleUserNameChange(e) {
+    this.setState({
+      username: e.target.value,
+    });
+  }
+
+  handlePasswordChange(e) {
+    this.setState({
+      password: e.target.value,
+    });
+  }
   render() {
     const settingsPage = {
       navbar: {
@@ -592,6 +603,43 @@ export default class SettingsPage extends React.Component {
       </Row>
     ) : null;
 
+    
+    const credentialRow = (
+      <Row>
+        <Col md={12}>
+          <h2 style={settingsPage.sectionHeading}>{'User Credentials'}</h2>
+        </Col>
+        <Col md={6}>
+          <FormGroup>
+            <ControlLabel>{'User Name'}</ControlLabel>
+            <FormControl
+              id='userNameInput'
+              type='text'
+              value={this.state.username}
+              placeholder='Login Email'
+              onChange={this.handleUserNameChange.bind(this)}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            />
+          </FormGroup>
+        </Col>
+        <Col md={6}>
+          <FormGroup>
+            <ControlLabel>{'Password'}</ControlLabel>
+            <FormControl
+              id='passwordInput'
+              type='password'
+              value={this.state.password}
+              onChange={this.handlePasswordChange.bind(this)}
+              onClick={(e) => {
+                e.stopPropagation();
+              }}
+            />
+          </FormGroup>
+        </Col>
+      </Row>
+    );
     return (
       <div>
         <Navbar
@@ -618,6 +666,7 @@ export default class SettingsPage extends React.Component {
         >
           { srvMgmt }
           { optionsRow }
+          { credentialRow }
         </Grid>
       </div>
     );

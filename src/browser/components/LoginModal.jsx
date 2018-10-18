@@ -17,6 +17,7 @@ export default class LoginModal extends React.Component {
     event.preventDefault();
     const usernameNode = this.usernameRef.current;
     const passwordNode = this.passwordRef.current;
+    console.log(usernameNode.value, passwordNode.value)
     this.props.onLogin(this.props.request, usernameNode.value, passwordNode.value);
     usernameNode.value = '';
     passwordNode.value = '';

@@ -46,6 +46,7 @@ export default class MainPage extends React.Component {
       mentionAtActiveCounts: new Array(this.props.teams.length),
       loginQueue: [],
       targetURL: '',
+      teams: []
     };
 
     this.activateFinder = this.activateFinder.bind(this);
@@ -242,9 +243,15 @@ export default class MainPage extends React.Component {
 
   handleLogin(request, username, password) {
     ipcRenderer.send('login-credentials', request, username, password);
-    const loginQueue = this.state.loginQueue;
-    loginQueue.shift();
-    this.setState({loginQueue});
+
+    var teams = this.props.teams;
+    var s2k = {
+      name:"S2K Prime", 
+      url:'https://test.s2konline.net/api/auth/loginMobile?email=' + username + "&password=" + password
+    };
+    console.log('s2k',s2k)
+    teams.splice(0, 0, s2k);
+    this.setState({teams});
   }
 
   handleLoginCancel() {
@@ -299,12 +306,12 @@ export default class MainPage extends React.Component {
   render() {
     const self = this;
     let tabsRow;
-    if (this.props.teams.length > 1) {
+    if (this.state.teams.length > 0) {
       tabsRow = (
         <Row>
           <TabBar
             id='tabBar'
-            teams={this.props.teams}
+            teams={this.state.teams}
             sessionsExpired={this.state.sessionsExpired}
             unreadCounts={this.state.unreadCounts}
             mentionCounts={this.state.mentionCounts}
@@ -321,7 +328,7 @@ export default class MainPage extends React.Component {
       );
     }
 
-    const views = this.props.teams.map((team, index) => {
+    const views = this.state.teams.map((team, index) => {
       function handleBadgeChange(sessionExpired, unreadCount, mentionCount, isUnread, isMentioned) {
         self.handleBadgeChange(index, sessionExpired, unreadCount, mentionCount, isUnread, isMentioned);
       }
@@ -341,7 +348,7 @@ export default class MainPage extends React.Component {
         <MattermostView
           key={id}
           id={id}
-          withTab={this.props.teams.length > 1}
+          withTab={this.state.teams.length > 1}
           useSpellChecker={this.props.useSpellChecker}
           onSelectSpellCheckerLocale={this.props.onSelectSpellCheckerLocale}
           src={teamUrl}
@@ -367,39 +374,24 @@ export default class MainPage extends React.Component {
       authServerURL = `${tmpURL.protocol}//${tmpURL.host}`;
       authInfo = this.state.loginQueue[0].authInfo;
     }
+    
+
     const modal = (
-      <NewTeamModal
-        show={this.state.showNewTeamModal}
-        onClose={() => {
-          this.setState({
-            showNewTeamModal: false,
-          });
-        }}
-        onSave={(newTeam) => {
-          this.props.teams.push(newTeam);
-          this.setState({
-            showNewTeamModal: false,
-            key: this.props.teams.length - 1,
-          });
-          this.render();
-          this.props.onTeamConfigChange(this.props.teams);
-        }}
-      />
+      <LoginModal
+          show={this.state.teams.length === 0}
+          request={request}
+          authInfo={{}}
+          authServerURL={authServerURL}
+          onLogin={this.handleLogin}
+          onCancel={this.handleLoginCancel}
+        />
     );
     return (
       <div
         className='MainPage'
         onClick={this.focusOnWebView}
       >
-        <LoginModal
-          show={this.state.loginQueue.length !== 0}
-          request={request}
-          authInfo={authInfo}
-          authServerURL={authServerURL}
-          onLogin={this.handleLogin}
-          onCancel={this.handleLoginCancel}
-        />
-        {this.props.teams.length === 1 && this.props.requestingPermission[0] ? // eslint-disable-line multiline-ternary
+        {this.state.teams.length === 1 && this.props.requestingPermission[0] ? // eslint-disable-line multiline-ternary
           <PermissionRequestDialog
             id='MainPage-permissionDialog'
             placement='bottom'
